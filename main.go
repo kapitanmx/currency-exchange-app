@@ -35,14 +35,6 @@ type CurrSearchResult struct {
 	Currencies []Currency `json:"currencies"`
 }
 
-type GoldRateResults struct {
-	Page int32 `json:"page"`
-	PerPage int32 `json:"per_page"`
-	TotalResults int32 `json:"total_results`
-	NextPage string `json:"next_page"`
-	GoldRates []GoldRate `json:"gold_rates"`
-}
-
 type Currency struct {
 	TopCount float32 `json:"top_count"`
 	Code int32 `json:"code"`
@@ -66,7 +58,7 @@ type GoldRate struct {
 	EndDate string `json:"end_date"`
 }
 
-func (c *Client) SearchCurrencies(query string, perPage, page int) (*CurSearchResult, error) {
+func (c *Client) SearchCurrencies(query string, perPage, page int) (*CurrSearchResult, error) {
 	url := fmt.Sprintf(CurrencyRatesAPI+"/search?query=%s&per_page=%d&page=%d", query, perPage, page)
 	res, err := c.requestDoWithAuth("GET", url)
 	defer res.Body.Close()
@@ -76,7 +68,7 @@ func (c *Client) SearchCurrencies(query string, perPage, page int) (*CurSearchRe
 		return nil, err
 	}
 
-	var result SearchResult
+	var result CurrSearchResult
 	err = json.Unmarshall(data, &result)
 	return &result, err
 }
@@ -98,14 +90,14 @@ func (c *Client) GetCurrencyTable(table string) () {
 	return &result, err
 }
 
-func (c *Client) GetCurrencyByTimeInterval(table, currencyCode, dateFrom , dateTo string) () {
-	url := fmt.Sprintf(CurrencyRatesAPI+"rates/%s/%s/%s/%s", table, currencyCode, dateFrom, dateTo)
+func (c *Client) GetCurrencyByTimeInterval(table, currencyCode, startDate , endDate string) () {
+	url := fmt.Sprintf(CurrencyRatesAPI+"rates/%s/%s/%s/%s", table, currencyCode, startDate, endDate)
 	res, err := c.RequestDoWithAuth("GET", url)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +128,7 @@ func (c *Client) GetCurrency(tableId int32, code int32) (*Currency, error) {
 		return nil, err
 	}
 	defer res.Body.Close()
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := ioutil.ReadAll(res.Body)
 	var result Currency
 	err = json.Unmarshal(data, &result)
 	return &result, err
@@ -148,11 +140,11 @@ func main() {
 
 	var c = NewClient(token)
 
-	result, err := c.GetRandomVideo()
+	result, err := c.GetCurrencyTable()
 
 	if err != nil {
 		fmt.Errorf("Search error:%v", err)
 	}
-	
+
 	fmt.Println(result)
 }
